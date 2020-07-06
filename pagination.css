@@ -1,0 +1,17 @@
+.pagination {
+  list-style: none;
+}
+
+.pagination--item {
+  display: inline-block;
+  border: 1px solid #eee;
+  padding: 10px;
+  cursor: pointer;
+  color: blue;
+  margin: 5px;
+} 
+
+.pagination--item-current {
+  cursor: default;
+  color: #333;
+}
