@@ -111,7 +111,7 @@ Our issue above is mainly about the `defaultValue` does not work after the compo
 
 Which `key` should we use? The `query.keyword` that we want to assign to `defaultValue`.
 
-```
+```jsx
 <Search onSearch={handleKeywordChange} defaultValue={query.keyword} key={query.keyword} />
 ```
 
@@ -119,7 +119,7 @@ Which `key` should we use? The `query.keyword` that we want to assign to `defaul
 
 Same as the componets, when loading data, the parameters should always get from the page URL query straight away:
 
-```
+```jsx
 loadList = async () => {
   const { location: { query } } = this.props;
   this.setState({
@@ -147,7 +147,7 @@ Except for how we also need to be clear about when to load the list:
 
 So we will use the `loadList` like below:
 
-```
+```jsx
 componentDidMount() {
   this.loadList();
 }
@@ -165,7 +165,7 @@ componentDidUpdate(prevProps) {
 
 Pagination will be just a simple fully controlled component:
 
-```
+```jsx
 ...
 handlePageChange = (page) => {
   const { location: { query } } = this.props;
@@ -180,7 +180,7 @@ const { total } = this.state;
 ```
 ## Altogether
 
-```
+```jsx
 class URLAwareSearchList extends React.Component {
   state = {
     data: [],
