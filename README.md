@@ -1,18 +1,18 @@
 # React Use Case: URL-Aware Search List
 
-This project is to showcase a common use case in React web application that a list page with search and pagination while their state needs to be sync with the page URL query.
+This project is to showcase a common use case in React web application that a List page with search and pagination while their state needs to be synced with the page URL query.
 
 ## Features
 
-- User can use the search input to type in keyword and hit enter or click "search" to trigger a list search.
-- The list result should be rendered together with pagination, which allows user to navigate to different pages.
-- when user trigger a new keyword search, page needs to be rest to 0
-- the search keyword and page number all needs to be synced to the page url. When user reload the page, the keyword and selected page should remain (the search input needs to be prefilled and specified page link is selected).
-- when a URL changed by other modules that is not the pagination and search input, the pagination and search should reflext the change from the URL.
+- Users can use the Search component to type in a keyword and hit enter or click "search" to trigger a list search.
+- The list result should be rendered together with pagination, which allows users to navigate between different pages.
+- when users trigger a new keyword search, the page needs to be rest to 0
+- the search keyword and page number all need to be synced to the page URL. When users reload the page, the keyword and the selected page should remain (the search input needs to be prefilled and specified page link is selected).
+- when a URL changed by other components that are not the pagination and search input, the pagination and search should reflect the change from the URL.
 
 ## Summary
 
-If we look at this project from a higher level, the whole page should be treated as a fully controlled component.
+If we look at this use case from a high level, the whole page should be treated as a "controlled component".
 
 The URL query string is the source of the truth:
 
@@ -25,15 +25,14 @@ so the data flow will be:
 user interactions -> page URL query changes -> route props changes -> UI updates accordingly.
 ```
 
-
 ## Keyword Search
 
-Keyword Search is the most trickies part. Even though the higher scale sounds like a "fulling controlled component" model, the Keyword Search component behavior lies somewhere in the middle:
+Keyword Search is the trickiest part. Even though the higher scale sounds like a "fulling controlled component" model, the Keyword Search component's behavior lies somewhere in the middle:
 
 - 1) It needs to respond to the change of the URL Query:
   - 1.1) when the page first load
   - 1.2) when the page URL Query is changed by other components
-- 2) It needs to manage its keyword value and only trigger the "change" event when user wants to search.
+- 2) It needs to manage its keyword value and only trigger the "change" event when users want to search.
 
 To implement 1) we have the [Controlled Component](https://reactjs.org/docs/forms.html#controlled-components), for example:
 
@@ -41,7 +40,7 @@ To implement 1) we have the [Controlled Component](https://reactjs.org/docs/form
 handleKeywordChange = (keyword) => {
   const { history } = this.props;
   const keyword = e.target.value;
-  history.push(`?keyword=${keyword}`);
+  history.push(`?keyword=${keyword}&page=0`);
 }
 
 render() {
@@ -54,7 +53,7 @@ render() {
 
 The code above will serve the requirement 1) very well. The keyword in the search input will always be synced to the page URL query.
 
-Yet it is not a good user experience. When users type to search, it usually a better idea to trigger a new search when users are ready for making change by click the "search" button or hit enter. Users should be able to freely type into text and the input value should update while users type.
+Yet it is not good user experience. When users type to search, it is usually a better idea to trigger a new search when users are ready for making change by click the "search" button or hit enter. Users should be able to freely type into text and the input value should update while users typing.
 
 That means the input element needs to be uncontrolled, at least not fully controlled, which is what the 2) requires.
 
@@ -63,7 +62,7 @@ To wrap up this extral logic and store the temporary user input before being tri
 ```jsx
 handleKeywordChange = (keyword) => {
   const { history } = this.props;
-  history.push(`?keyword=${keyword}`);
+  history.push(`?keyword=${keyword}&page=0`);
 }
 
 render() {
@@ -76,7 +75,7 @@ render() {
 
 This version should work quite well now.
 
-Users type in words, hits "search", the page URL shall be updated. If users then refresh the page, the keyword that they typed in before shall be prepopulated from the URL.
+Users type in words hits "search", the page URL shall be updated. If users then refresh the page, the keyword that they typed in before shall be prepopulated from the URL.
 
 Except it does not meet the requirement of 1.2).
 
@@ -85,7 +84,7 @@ Imagine if there is a "people also searchs" section in the page, providing quick
 ```jsx
 handleKeywordChange = (keyword) => {
   const { history } = this.props;
-  history.push(`?keyword=${keyword}`);
+  history.push(`?keyword=${keyword}&page=0`);
 }
 
 render() {
@@ -99,17 +98,21 @@ render() {
 }
 ```
 
-As we know, `[defaultValue](https://reactjs.org/docs/uncontrolled-components.html#default-values)` works as the initial value when the component first rendered and the value will be ignore afterwards. That means after the page loads, later on when users click the keywords on `<HotKeywords />`, which triggers the `query.keyword` changes in `this.props` through the page url query change, the new `query.keyword` will not be reflected on the `<Search />` component.
+As we know, `[defaultValue](https://reactjs.org/docs/uncontrolled-components.html#default-values)` works as the initial value when the component first rendered, and the value will be ignored afterward. That means after the page loads, later on when users click the keywords on `<HotKeywords />`, which triggers the `query.keyword` changes in `this.props` through the page URL query change, the new `query.keyword` will not be reflected on the `<Search />` component.
 
 What can we do?
 
 ### "Key" is the key.
 
-Our issue above is mainly about the `defaultValue` does not work after the components initial rendering. What if we can force the component to remount itself? The answer here is the `key` attribute.
+Our issue above is mainly about the `defaultValue` that does not work after the component's initial rendering. Is there anyway we can force the component to remount itself?
 
-`key` is mostly used in the use case of rendering a list by assigning each item a unique `key` as "id" which helps React identify which items have changed, are added, or are removed. So in our case if we assign a different key to our `<Search />` component, React will think that the component with the old `key` needs to be removed and a new component with a new `key` needs to be added, which in another word is called `remount`.
+The answer here is the `key` attribute.
 
-Which `key` should we use? The `query.keyword` that we want to assign to `defaultValue`.
+`key` is mostly used in the use case of rendering a list by assigning each item a unique `key` as "id" which helps React identify which items have changed, are added, or are removed. So in our case if we assign a different key to our `<Search />` component, React will think that the component with the old `key` needs to be removed and a new component with a new `key` needs to be added, which, in another word is called `remount`.
+
+Which `key` should we use?
+
+The `query.keyword` that we want to assign to `defaultValue`.
 
 ```jsx
 <Search onSearch={handleKeywordChange} defaultValue={query.keyword} key={query.keyword} />
@@ -140,7 +143,7 @@ loadList = async () => {
 
 this will make sure the list result always align with the page URL.
 
-Except for how we also need to be clear about when to load the list:
+In addition, we also need to be clear when to load the list:
 
 - when the page first loads
 - when the page URL query changes
@@ -178,6 +181,7 @@ const { total } = this.state;
 ...
 <Pagination total={total} pageSize={20} page={query.page} onPageChange={this.handlePageChange} />
 ```
+
 ## Altogether
 
 ```jsx
@@ -216,7 +220,7 @@ class URLAwareSearchList extends React.Component {
     const { loading, data, total } = this.state;
     return (
       <div>
-        <Search onSearch={this.handleKeywordChange} defaultValue={query.keyword} />
+        <Search onSearch={this.handleKeywordChange} key={query.keyword} defaultValue={query.keyword} />
         <HotKeywords onSelect={this.handleKeywordChange} />
         <DataList data={data} loading={loading} />
         <Pagination total={total} pageSize={20} page={query.page} onPageChange={this.handlePageChange} /> 
